@@ -1,0 +1,18 @@
+#!/bin/sh
+
+case "$1" in
+        start)
+
+            # Bring power to SD CARD (GPIO12)
+	    devmem 0x120c0010 32 0x1e02
+	    gpio clear 12
+
+            # bumping SDHCI driver
+            echo 10010000.sdhci > /sys/bus/platform/drivers/sdhci-goke/unbind
+            echo 10010000.sdhci > /sys/bus/platform/drivers/sdhci-goke/bind
+
+	    # enable Wifi gpio
+    	    gpio clear 0
+esac
+
+exit 0

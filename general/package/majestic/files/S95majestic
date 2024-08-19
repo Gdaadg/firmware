@@ -1,0 +1,47 @@
+#!/bin/sh
+export SENSOR=$(fw_printenv -n sensor)
+
+DAEMON="majestic"
+PIDFILE="/var/run/$DAEMON.pid"
+MAJESTIC_ARGS="-s"
+
+start() {
+	ulimit -c unlimited
+	echo "/tmp/majestic.core" > /proc/sys/kernel/core_pattern
+
+	printf "Starting $DAEMON: "
+	start-stop-daemon -b -S -m -q -p "$PIDFILE" -x "/usr/bin/$DAEMON" -- $MAJESTIC_ARGS
+	if [ $? = 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+	fi
+}
+
+stop() {
+	printf "Stopping $DAEMON: "
+	start-stop-daemon -K -q -p "$PIDFILE"
+	if [ $? = 0 ]; then
+		rm -f "$PIDFILE"
+		echo "OK"
+	else
+		echo "FAIL"
+	fi
+}
+
+case "$1" in
+	start|stop)
+		"$1"
+		;;
+
+	restart)
+		stop
+		sleep 3
+		start
+		;;
+
+	*)
+		echo "Usage: $0 {start|stop|debug|restart}"
+		exit 1
+		;;
+esac
